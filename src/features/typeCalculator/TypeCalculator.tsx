@@ -81,7 +81,7 @@ export function TypeCalculator() {
                 </div>
             </div>
 
-            <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+            <div className="flex flex-wrap justify-center gap-2 sm:gap-3 bg-slate-900/30 p-4 rounded-xl border border-slate-700/50">
                 {ALL_TYPES.map(type => (
                     <TypeBadge
                         key={type}

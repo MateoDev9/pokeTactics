@@ -85,7 +85,7 @@ export function Quiz() {
             setFeedback(null);
             setHardInput('');
             setQuestion(generateQuestion());
-        }, 1500);
+        }, isCorrect ? 1500 : 3500);
     };
 
     const t = (type: PokemonType) => TYPE_LABELS[type];
@@ -135,14 +135,26 @@ export function Quiz() {
                                 <span>SCORE: <span className="text-green-400">{score}</span></span>
                             </div>
 
-                            <div className="flex flex-col items-center gap-4">
-                                <h3 className="text-lg text-slate-300">¿Qué tipo es **Súper Efectivo** contra:</h3>
-                                <TypeBadge type={question.defenderType} className="scale-125" />
-                                <span className="text-2xl mt-2 font-bold select-none">?</span>
+                            <div className="flex flex-col items-center gap-6 w-full">
+                                <div className="flex flex-wrap justify-center items-center gap-3 text-lg text-slate-300 font-medium bg-slate-900/40 p-4 rounded-xl border border-slate-700/50 w-full">
+                                    <span>¿Qué es <strong className="text-green-400 font-bold">Súper Efectivo</strong> contra</span>
+                                    <TypeBadge type={question.defenderType} className="scale-110 shadow-md pointer-events-none" />
+                                    <span>?</span>
+                                </div>
                             </div>
 
-                            {feedback === 'correct' && <div className="text-green-400 font-bold text-xl animate-bounce">¡Súper Efectivo!</div>}
-                            {feedback === 'wrong' && <div className="text-red-400 font-bold text-xl">No es muy efectivo...</div>}
+                            {feedback === 'correct' && <div className="text-green-400 font-bold text-xl animate-bounce">¡Correcto! Súper Efectivo</div>}
+                            {feedback === 'wrong' && (
+                                <div className="flex flex-col items-center gap-2 bg-red-950/30 p-4 rounded-xl border border-red-500/20 w-full animate-in fade-in slide-in-from-bottom-2">
+                                    <div className="text-red-400 font-bold text-lg mb-1">¡Incorrecto!</div>
+                                    <div className="text-sm text-slate-300">
+                                        Era débil a:
+                                    </div>
+                                    <div className="flex flex-wrap justify-center gap-2 mt-1">
+                                        {question.correctWeakness.map(w => <TypeBadge key={w} type={w} className="pointer-events-none" />)}
+                                    </div>
+                                </div>
+                            )}
 
                             {mode === 'easy' && feedback === null && (
                                 <div className="grid grid-cols-2 gap-4 w-full mt-4">
