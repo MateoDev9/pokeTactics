@@ -1,11 +1,17 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "Inter", "outfit", Roboto, ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  --font-sans: "Outfit", "Inter", Roboto, ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  --font-pixel: "Press Start 2P", cursive;
 }
 
 @layer base {
   body {
-    @apply bg-slate-900 text-slate-100 antialiased;
+    @apply bg-slate-900 text-slate-100 antialiased font-sans;
+    background-image:
+      radial-gradient(circle at 15% 50%, rgba(255, 255, 255, 0.03) 0%, transparent 25%),
+      radial-gradient(circle at 85% 30%, rgba(255, 255, 255, 0.04) 0%, transparent 20%);
+    background-color: #0f172a;
+    background-attachment: fixed;
   }
 }

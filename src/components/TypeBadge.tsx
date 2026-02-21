@@ -16,8 +16,8 @@ export function TypeBadge({ type, className, onClick, selected }: TypeBadgeProps
         <div
             onClick={onClick}
             className={cn(
-                "inline-flex items-center justify-center rounded-full px-3 py-1 text-sm font-semibold uppercase tracking-wider text-white shadow-sm transition-all duration-200",
-                isClickable && "cursor-pointer hover:scale-105 hover:shadow-md",
+                "inline-flex items-center justify-center rounded-sm px-2 sm:px-3 py-1 font-sans text-[10px] sm:text-xs font-bold uppercase tracking-wide text-white transition-all duration-200 whitespace-nowrap overflow-hidden text-ellipsis min-w-[70px] sm:min-w-[85px] border-b-2 border-r-2 border-slate-900/50",
+                isClickable && "cursor-pointer hover:-translate-y-1 hover:brightness-110",
                 selected === false && "opacity-40 grayscale-[0.8]",
                 className
             )}

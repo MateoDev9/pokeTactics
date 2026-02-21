@@ -16,7 +16,8 @@ export function PokemonSearcher() {
     const matchedNames = useMemo(() => {
         if (!searchTerm || searchTerm.length < 2 || !pokemonList) return [];
         return pokemonList
-            .filter(name => name.includes(searchTerm.toLowerCase()))
+            .map((name, index) => ({ name, id: index + 1 }))
+            .filter(p => p.name.includes(searchTerm.toLowerCase()))
             .slice(0, 5);
     }, [searchTerm, pokemonList]);
 
@@ -68,15 +69,21 @@ export function PokemonSearcher() {
                             initial={{ opacity: 0, y: -10 }}
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: -10 }}
-                            className="absolute w-full mt-2 bg-slate-800 border border-slate-700 rounded-lg shadow-xl overflow-hidden"
+                            className="absolute w-full mt-2 bg-slate-800 border-2 border-slate-700 rounded-lg shadow-xl overflow-hidden z-20 divide-y divide-slate-700/50"
                         >
-                            {matchedNames.map(name => (
+                            {matchedNames.map(match => (
                                 <li
-                                    key={name}
-                                    className="px-4 py-3 hover:bg-slate-700 cursor-pointer capitalize text-slate-200 transition-colors"
-                                    onClick={() => handleSelect(name)}
+                                    key={match.name}
+                                    className="px-4 py-2 hover:bg-slate-700 cursor-pointer capitalize text-slate-200 transition-colors flex items-center group"
+                                    onClick={() => handleSelect(match.name)}
                                 >
-                                    {name}
+                                    <img
+                                        src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${match.id}.png`}
+                                        alt={match.name}
+                                        className="w-10 h-10 object-contain drop-shadow-md mr-3 group-hover:scale-110 transition-transform"
+                                        onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                                    />
+                                    <span className="font-semibold">{match.name}</span>
                                 </li>
                             ))}
                         </motion.ul>
