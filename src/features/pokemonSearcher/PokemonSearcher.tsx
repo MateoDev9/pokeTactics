@@ -168,6 +168,20 @@ export function PokemonSearcher() {
                                         {renderMultipliers(analysis.immunities, "Inmune A", "x0")}
                                     </div>
                                 </div>
+                                {pokemon.moves && pokemon.moves.length > 0 && (
+                                    <div className="mt-2 space-y-3 p-4 bg-slate-900/50 rounded-xl border border-slate-700/50">
+                                        <h4 className="text-sm font-medium text-slate-400 flex items-center gap-2">
+                                            Movimientos Destacados
+                                        </h4>
+                                        <div className="flex flex-wrap gap-2">
+                                            {pokemon.moves.map((move: string) => (
+                                                <span key={move} className="px-3 py-1 bg-slate-800 text-slate-300 text-xs font-bold capitalize rounded-md border border-slate-700">
+                                                    {move}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         </motion.div>
                     )}

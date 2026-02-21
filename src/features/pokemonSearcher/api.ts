@@ -11,6 +11,7 @@ interface PokeApiPokemonResponse {
     types: { type: { name: string } }[];
     sprites: { front_default: string; other: { 'official-artwork': { front_default: string } } };
     stats: { base_stat: number; stat: { name: string } }[];
+    moves: { move: { name: string; url: string } }[];
 }
 
 export function usePokemonList() {
@@ -40,7 +41,9 @@ export function usePokemon(name: string) {
                 name: data.name,
                 types: data.types.map(t => t.type.name as PokemonType),
                 image: data.sprites.other['official-artwork'].front_default || data.sprites.front_default,
-                stats: data.stats.map(s => ({ name: s.stat.name, value: s.base_stat }))
+                stats: data.stats.map(s => ({ name: s.stat.name, value: s.base_stat })),
+                // Just map the first 8 moves as "Notable/Meta" moves for the prototype
+                moves: data.moves.slice(0, 8).map(m => m.move.name.replace('-', ' '))
             };
         },
         enabled: !!name,
