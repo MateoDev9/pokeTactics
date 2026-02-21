@@ -4,6 +4,7 @@ import tailwindcss from '@tailwindcss/vite'
 
 // https://vite.dev/config/
 export default defineConfig({
+  base: '/pokeTactics/', // This MUST match the GitHub repository name
   plugins: [
     tailwindcss(),
     react()
