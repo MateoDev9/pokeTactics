@@ -3,13 +3,14 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { usePokemonList, usePokemon } from './api';
 import { analyzeDefense } from '../../utils/typeLogic';
 import { TypeBadge } from '../../components/TypeBadge';
-import { Card } from '../../components/ui';
-import { Search, Loader2 } from 'lucide-react';
+import { Card, cn } from '../../components/ui';
+import { Search, Loader2, BarChart2 } from 'lucide-react';
 import type { PokemonType } from '../../types';
 
 export function PokemonSearcher() {
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedPokemonName, setSelectedPokemonName] = useState('');
+    const [showStats, setShowStats] = useState(false);
     const { data: pokemonList, isLoading: isLoadingList } = usePokemonList();
     const { data: pokemon, isLoading: isLoadingPokemon } = usePokemon(selectedPokemonName);
 
@@ -29,6 +30,7 @@ export function PokemonSearcher() {
     const handleSelect = (name: string) => {
         setSelectedPokemonName(name);
         setSearchTerm('');
+        setShowStats(false);
     };
 
     const renderMultipliers = (types: PokemonType[], title: string, multiplierStr: string) => {
@@ -71,7 +73,7 @@ export function PokemonSearcher() {
                             exit={{ opacity: 0, y: -10 }}
                             className="absolute w-full mt-2 bg-slate-800 border-2 border-slate-700 rounded-lg shadow-xl overflow-hidden z-20 divide-y divide-slate-700/50"
                         >
-                            {matchedNames.map(match => (
+                            {matchedNames.map((match: { name: string; id: number }) => (
                                 <li
                                     key={match.name}
                                     className="px-4 py-2 hover:bg-slate-700 cursor-pointer capitalize text-slate-200 transition-colors flex items-center group"
@@ -121,16 +123,50 @@ export function PokemonSearcher() {
                                 <div className="flex gap-2">
                                     {pokemon.types.map(t => <TypeBadge key={t} type={t} />)}
                                 </div>
+                                <button
+                                    onClick={() => setShowStats(!showStats)}
+                                    className={cn("mt-2 text-xs flex items-center justify-center gap-1.5 px-4 py-2 rounded-lg font-bold transition-colors border shadow-sm w-full", showStats ? "bg-purple-900/40 text-purple-300 border-purple-500/50" : "bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 border-slate-700")}
+                                >
+                                    <BarChart2 className="w-4 h-4" /> {showStats ? 'Ocultar Stats' : 'Ver Base Stats'}
+                                </button>
                             </div>
 
-                            <div className="flex-1 w-full grid gap-6 sm:grid-cols-2">
-                                <div className="space-y-4">
-                                    {renderMultipliers(analysis.weaknesses.filter(t => analysis.multipliers[t] === 4), "Puntos Críticos", "x4")}
-                                    {renderMultipliers(analysis.weaknesses.filter(t => analysis.multipliers[t] === 2), "Debilidades", "x2")}
-                                </div>
-                                <div className="space-y-4">
-                                    {renderMultipliers(analysis.resistances, "Resiste", "x0.5 - x0.25")}
-                                    {renderMultipliers(analysis.immunities, "Inmune A", "x0")}
+                            <div className="flex-1 w-full flex flex-col gap-6">
+                                <AnimatePresence>
+                                    {showStats && (
+                                        <motion.div
+                                            initial={{ opacity: 0, height: 0 }}
+                                            animate={{ opacity: 1, height: 'auto' }}
+                                            exit={{ opacity: 0, height: 0 }}
+                                            className="w-full grid grid-cols-2 gap-x-6 gap-y-3 bg-slate-900/60 p-4 rounded-xl border border-slate-700/50 overflow-hidden"
+                                        >
+                                            {pokemon.stats.map((s: { name: string; value: number }) => (
+                                                <div key={s.name} className="flex flex-col gap-1.5">
+                                                    <div className="flex justify-between text-slate-400 capitalize text-xs">
+                                                        <span>{s.name.replace('special-', 'sp. ')}</span>
+                                                        <span className="font-bold text-slate-200">{s.value}</span>
+                                                    </div>
+                                                    <div className="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
+                                                        <div
+                                                            className={cn("h-full rounded-full", s.value >= 100 ? "bg-teal-400" : s.value >= 70 ? "bg-amber-400" : "bg-rose-400")}
+                                                            style={{ width: `${Math.min(100, (s.value / 150) * 100)}%` }}
+                                                        />
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
+
+                                <div className="grid gap-6 sm:grid-cols-2">
+                                    <div className="space-y-4">
+                                        {renderMultipliers(analysis.weaknesses.filter(t => analysis.multipliers[t] === 4), "Puntos Críticos", "x4")}
+                                        {renderMultipliers(analysis.weaknesses.filter(t => analysis.multipliers[t] === 2), "Debilidades", "x2")}
+                                    </div>
+                                    <div className="space-y-4">
+                                        {renderMultipliers(analysis.resistances, "Resiste", "x0.5 - x0.25")}
+                                        {renderMultipliers(analysis.immunities, "Inmune A", "x0")}
+                                    </div>
                                 </div>
                             </div>
                         </motion.div>

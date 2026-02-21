@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { PokemonType } from '../../types';
 import { TYPE_LABELS } from '../../data/typeEfficacy';
@@ -44,11 +44,13 @@ export function Quiz() {
     const [score, setScore] = useState(0);
     const [feedback, setFeedback] = useState<'correct' | 'wrong' | null>(null);
     const [hardInput, setHardInput] = useState('');
+    const [guessedTypes, setGuessedTypes] = useState<PokemonType[]>([]);
 
     const startQuiz = () => {
         setScore(0);
         setFeedback(null);
         setHardInput('');
+        setGuessedTypes([]);
         setQuestion(generateQuestion());
     };
 
@@ -58,19 +60,42 @@ export function Quiz() {
         submitAnswer(isCorrect);
     };
 
-    const handleAnswerHard = (e: React.FormEvent) => {
+    const handleAnswerHardSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        if (!question || !hardInput.trim()) return;
-
-        // Find if the translated or eng name matches any weakness
-        const normalizedInput = hardInput.trim().toLowerCase();
-
-        const isCorrect = question.correctWeakness.some(w =>
-            t(w).toLowerCase() === normalizedInput || w.toLowerCase() === normalizedInput
-        );
-
-        submitAnswer(isCorrect);
+        if (!question || !hardInput.trim() || matchedTypes.length === 0) return;
+        handleSelectHard(matchedTypes[0]);
     };
+
+    const handleSelectHard = (type: PokemonType) => {
+        if (!question || feedback !== null) return;
+
+        if (guessedTypes.includes(type)) {
+            setHardInput('');
+            return;
+        }
+
+        const isCorrect = question.correctWeakness.includes(type);
+
+        if (isCorrect) {
+            const newGuessed = [...guessedTypes, type];
+            setGuessedTypes(newGuessed);
+            setHardInput('');
+
+            if (newGuessed.length === question.correctWeakness.length) {
+                submitAnswer(true);
+            }
+        } else {
+            submitAnswer(false);
+        }
+    };
+
+    const matchedTypes = useMemo(() => {
+        if (!hardInput || hardInput.length < 1) return [];
+        return ALL_TYPES.filter(type =>
+            TYPE_LABELS[type].toLowerCase().includes(hardInput.toLowerCase()) ||
+            type.toLowerCase().includes(hardInput.toLowerCase())
+        );
+    }, [hardInput]);
 
     const submitAnswer = (isCorrect: boolean) => {
         if (isCorrect) {
@@ -84,6 +109,7 @@ export function Quiz() {
         setTimeout(() => {
             setFeedback(null);
             setHardInput('');
+            setGuessedTypes([]);
             setQuestion(generateQuestion());
         }, isCorrect ? 1500 : 3500);
     };
@@ -135,6 +161,12 @@ export function Quiz() {
                                 <span>SCORE: <span className="text-green-400">{score}</span></span>
                             </div>
 
+                            {mode === 'hard' && question.correctWeakness.length > 1 && feedback === null && (
+                                <div className="text-sm text-purple-400 font-bold -mt-4 animate-pulse">
+                                    ¡Atención! Este tipo tiene {question.correctWeakness.length} debilidades dobles.
+                                </div>
+                            )}
+
                             <div className="flex flex-col items-center gap-6 w-full">
                                 <div className="flex flex-wrap justify-center items-center gap-3 text-lg text-slate-300 font-medium bg-slate-900/40 p-4 rounded-xl border border-slate-700/50 w-full">
                                     <span>¿Qué es <strong className="text-green-400 font-bold">Súper Efectivo</strong> contra</span>
@@ -142,6 +174,12 @@ export function Quiz() {
                                     <span>?</span>
                                 </div>
                             </div>
+
+                            {guessedTypes.length > 0 && mode === 'hard' && feedback === null && (
+                                <div className="flex flex-wrap gap-2 w-full justify-center">
+                                    {guessedTypes.map(t => <TypeBadge key={t} type={t} className="pointer-events-none border-green-500/50" />)}
+                                </div>
+                            )}
 
                             {feedback === 'correct' && <div className="text-green-400 font-bold text-xl animate-bounce">¡Correcto! Súper Efectivo</div>}
                             {feedback === 'wrong' && (
@@ -170,19 +208,43 @@ export function Quiz() {
                             )}
 
                             {mode === 'hard' && feedback === null && (
-                                <form onSubmit={handleAnswerHard} className="w-full mt-4 flex gap-2">
-                                    <input
-                                        type="text"
-                                        value={hardInput}
-                                        onChange={e => setHardInput(e.target.value)}
-                                        placeholder="Escribe el tipo (ej: fuego)"
-                                        className="flex-1 bg-slate-900 border-2 border-slate-600 rounded-lg px-4 py-3 text-slate-100 focus:outline-none focus:border-purple-500 p-2 font-bold"
-                                        autoFocus
-                                    />
-                                    <button type="submit" className="bg-purple-600 hover:bg-purple-500 rounded-lg px-6 font-bold text-white transition-colors">
-                                        Ok
-                                    </button>
-                                </form>
+                                <div className="w-full mt-2 relative">
+                                    <form onSubmit={handleAnswerHardSubmit} className="flex gap-2">
+                                        <input
+                                            type="text"
+                                            value={hardInput}
+                                            onChange={e => setHardInput(e.target.value)}
+                                            placeholder={`Encuentra las ${question.correctWeakness.length} debilidades...`}
+                                            className="flex-1 bg-slate-900 border-2 border-slate-600 rounded-lg px-4 py-3 text-slate-100 focus:outline-none focus:border-purple-500 p-2 font-bold"
+                                            autoFocus
+                                        />
+                                        <button type="submit" className="bg-purple-600 hover:bg-purple-500 rounded-lg px-6 font-bold text-white transition-colors" disabled={matchedTypes.length === 0}>
+                                            Ok
+                                        </button>
+                                    </form>
+
+                                    <AnimatePresence>
+                                        {matchedTypes.length > 0 && (
+                                            <motion.ul
+                                                initial={{ opacity: 0, y: -10 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                exit={{ opacity: 0, y: -10 }}
+                                                className="absolute bottom-full mb-2 w-full bg-slate-800 border-2 border-slate-700 rounded-lg shadow-xl overflow-hidden z-20 divide-y divide-slate-700/50 max-h-48 overflow-y-auto"
+                                            >
+                                                {matchedTypes.map((match: PokemonType) => (
+                                                    <li
+                                                        key={match}
+                                                        className="px-4 py-3 hover:bg-slate-700 cursor-pointer capitalize text-slate-200 transition-colors flex items-center group"
+                                                        onClick={() => handleSelectHard(match)}
+                                                    >
+                                                        <TypeBadge type={match} className="scale-90 pointer-events-none mr-2" />
+                                                        <span className="font-semibold text-sm">{t(match)}</span>
+                                                    </li>
+                                                ))}
+                                            </motion.ul>
+                                        )}
+                                    </AnimatePresence>
+                                </div>
                             )}
                         </motion.div>
                     </AnimatePresence>

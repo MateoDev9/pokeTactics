@@ -10,6 +10,7 @@ interface PokeApiPokemonResponse {
     name: string;
     types: { type: { name: string } }[];
     sprites: { front_default: string; other: { 'official-artwork': { front_default: string } } };
+    stats: { base_stat: number; stat: { name: string } }[];
 }
 
 export function usePokemonList() {
@@ -39,6 +40,7 @@ export function usePokemon(name: string) {
                 name: data.name,
                 types: data.types.map(t => t.type.name as PokemonType),
                 image: data.sprites.other['official-artwork'].front_default || data.sprites.front_default,
+                stats: data.stats.map(s => ({ name: s.stat.name, value: s.base_stat }))
             };
         },
         enabled: !!name,
